@@ -119,6 +119,7 @@ INSERT INTO publishs VALUES ('Sam',ARRAY[ROW('my selfridge', TIMESTAMP '2011-05-
 // kan pengyouquan
  SELECT usrname, unnest(shows) FROM publishs WHERE usrname in (SELECT unnest(friends) FROM friendlist WHERE uname = 'nathan');
 ==========================
+
  SELECT showitem.content WHERE showitem in (SELECT unnest(shows) FROM publishs WHERE usrname in (SELECT unnest(friends) FROM friendlist WHERE uname = 'nathan'));
 ==========================
 REAL find publishs

@@ -1,6 +1,7 @@
 require 'pg'
 require 'socket'
 require 'json'
+require 'base64'
 require 'pp'
 
 def main
@@ -21,12 +22,17 @@ def main
     client = server.accept
     line = client.gets
     puts line
-    if line == "SAVE" 
+    if line == "SAVE\n" 
+       puts "yes"
+       line = client.gets
        File.open('shipping_label.jpeg', 'wb') do|f|
           f.write(Base64.decode64(line))
        end
-       client puts "SAVEDONE"
+       client.puts "SAVEDONE"
+       client.close
+       puts "save done, close"
     else
+      puts "NO"
         str = ""
         begin
           res  = @conn.exec( line )
@@ -42,6 +48,7 @@ def main
 else # no error
   puts "NO ERROR!"
         client.puts "NOERROR"
+                  sleep(1.0)
         resultstatus = res.res_status(res.result_status)
         if resultstatus == "PGRES_COMMAND_OK"
           puts "no return data"
@@ -49,6 +56,7 @@ else # no error
           client.close
           next
         elsif resultstatus == "PGRES_TUPLES_OK"
+          puts " return data"
           client.puts "has return data"
         else
           puts "Impossible! QUIT!"
@@ -69,6 +77,8 @@ else # no error
         end
         h[fieldArray[i]] = a
         json1 = h.to_json
+                  sleep(1.0)
+        puts "data..."
         client.write(json1)
         client.close    
 end

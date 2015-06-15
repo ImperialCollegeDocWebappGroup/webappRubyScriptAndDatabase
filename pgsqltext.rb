@@ -3,8 +3,14 @@ require 'socket'
 require 'json'
 require 'base64'
 require 'pp'
+require 'date'
 
 def main
+  localIp = Socket::getaddrinfo(Socket.gethostname,"echo",Socket::AF_INET)[0][3]
+  puts localIp
+  filePath = "/homes/jl6613/public_html/"
+  fileName = "serverIp.txt"
+  File.open(filePath+fileName, 'w') { |file| file.write(localIp) }
 	@conn = PGconn.connect(
 		:host => 'db.doc.ic.ac.uk',
 		:port => '5432',
@@ -17,6 +23,21 @@ def main
   else
         abort("connect fail!")
 	end
+   #SELECT EXISTS(SELECT 1 from userprofile WHERE login = 'Sam');
+  #line2 = "SELECT EXISTS(SELECT 1 from userprofile WHERE login = 'Sam2');"
+  #UPDATE publishs SET shows = array_append(shows, ROW('http://www.selfridges.com/en/givenchy-amerika-cuban-fit-cotton-jersey-t-shirt_242-3000831-15S73176511/?previewAttribute=Black', LOCALTIMESTAMP,ARRAY[]::comment[],'')::publishitem) WHERE usrname = 'nathan';
+  line2 = query = "UPDATE publishs SET shows = array_append(shows, ROW('http://www.selfridges.com/en/givenchy-amerika-cuban-fit-cotton-jersey-t-shirt_242-3000831-15S73176511/?previewAttribute=Black', LOCALTIMESTAMP,ARRAY[]::comment[],'')::publishitem) WHERE usrname = 'nathan';"
+    #puts res[0]["exists"]
+    begin
+          res  = @conn.exec( line2 )
+          puts res.res_status(res.result_status)
+        rescue PG::Error => err
+          str = err.result.error_field( PG::Result::PG_DIAG_SEVERITY )
+          puts "Return error!"
+        end
+    
+
+  abort("test end")
   server = TCPServer.new 1111
   loop {
     client = server.accept

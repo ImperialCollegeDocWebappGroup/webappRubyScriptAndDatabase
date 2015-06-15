@@ -1,0 +1,30 @@
+  Table "public.userprofile"
+   Column   |     Type      | Modifiers 
+------------+---------------+-----------
+ login      | character(15) | not null
+ name       | text          | not null
+ gender     | boolean       | 
+ age        | integer       | not null
+ height     | integer       | not null
+ weight     | integer       | not null
+ skincolour | integer       | not null
+ friends    | text[]        | 
+ wholelook  | text[]        | 
+ comments   | text[]        | 
+ tops       | text[]        | 
+ buttoms    | text[]        | 
+ icon       | text          | 
+ ====================================
+ Table "public.publishs"
+ Column  |     Type      | Modifiers 
+---------+---------------+-----------
+ usrname | character(15) | not null
+ shows   | publishitem[] | 
+ ====================================
+ Composite type "public.publishitem"
+   Column    |            Type             | Modifiers 
+-------------+-----------------------------+-----------
+ content     | character varying(200)      | 
+ publishtime | timestamp without time zone | 
+ comments    | comment[]                   | 
+ photo       | character varying(30)       | 

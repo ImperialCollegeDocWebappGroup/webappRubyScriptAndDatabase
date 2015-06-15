@@ -27,6 +27,7 @@ def main
   index = 0
   loop {
     client = server.accept
+    puts "client accpetd"
     line = client.gets
     puts line
     if (line == "SAVE1\n") || (line == "SAVE2\n")
@@ -51,7 +52,7 @@ def main
         File.open(fileName, 'wb') do|f|
           f.write(Base64.decode64(line))
         end
-        query = "UPDATE userprofile SET " + cloth + " = array_append(" cloth +", " + index.to_s + ") WHERE login = '';"
+        query = "UPDATE userprofile SET " + cloth + " = array_append(" + cloth +", " + index.to_s + ") WHERE login = '';"
         begin
           res  = @conn.exec(query)
           puts res.res_status(res.result_status)
@@ -132,12 +133,12 @@ def main
         resultstatus = res.res_status(res.result_status)
         if resultstatus == "PGRES_COMMAND_OK"
           puts "no return data"
-          client.puts "no return data"
+          client.puts "NOR"
           client.close
           next
         elsif resultstatus == "PGRES_TUPLES_OK"
-          puts " return data"
-          client.puts "has return data"
+          puts "has return data"
+          client.puts "YESR"
         else
           puts "Impossible! QUIT!"
           client.puts "ERROR2"
@@ -153,11 +154,13 @@ def main
         end
         h[fieldArray[i]] = a
         json1 = h.to_json
+        puts "waiting"
         reply = client.gets
         puts reply
         puts "data..."
         client.write(json1)
-        client.close    
+        client.close
+        puts "closed"    
       end
     end
   }

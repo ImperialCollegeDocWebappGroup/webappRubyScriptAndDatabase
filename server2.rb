@@ -26,6 +26,7 @@ def main
   server = TCPServer.new 1111
   index = 0
   loop {
+    puts "new loop"
     client = server.accept
     puts "client accpetd"
     line = client.gets
@@ -99,6 +100,7 @@ def main
         if str == "ERROR"
           puts str
           client.puts "ERROR"
+          client.close
           next
         end 
         client.puts "PUBLISHDONE"
@@ -124,6 +126,7 @@ def main
       if str == "ERROR" # has error
         puts str
         client.puts "ERROR"
+        client.close
         next
       else
         puts "NO ERROR!"
@@ -149,10 +152,11 @@ def main
         for i in 0..fieldArray.count-1
           a = []
           res.each do |row|
-          a.push(row[fieldArray[i]].lstrip.rstrip)
-          end         
+            a.push(row[fieldArray[i]].lstrip.rstrip)
+          end
+          h[fieldArray[i]] = a        
         end
-        h[fieldArray[i]] = a
+        puts h
         json1 = h.to_json
         puts "waiting"
         reply = client.gets

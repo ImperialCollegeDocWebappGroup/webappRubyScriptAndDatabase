@@ -25,6 +25,19 @@ Indexes:
     "uniqueuname" UNIQUE CONSTRAINT, btree (uname)
 Foreign-key constraints:
     "friendlist_uname_fkey" FOREIGN KEY (uname) REFERENCES userprofile(login)
+======
+UPDATE userprofile SET buttoms = ARRAY['http://www.selfridges.com/en/givenchy-relaxed-fit-leather-jogging-bottoms_242-3000831-15F0407434/?previewAttribute=Black'] WHERE login = 'Sam';
+
+http://www.selfridges.com/en/givenchy-relaxed-fit-leather-jogging-bottoms_242-3000831-15F0407434/?previewAttribute=Black
+
+ ALTER TYPE publishitem ADD ATTRIBUTE comments comment[];
+
+=======================
+CREATE TYPE comment AS (
+    cusrname    varchar(15) ,
+    comment     text ,
+    cptime    timestamp without time zone
+);
 
 ==========================
    Table "public.userprofile"
@@ -51,6 +64,8 @@ Referenced by:
 ==========================
 ==========================
 ==========================
+UPDATE userprofile SET icon = 'http://image.baidu.com/i?ct=503316480&z=undefined&tn=baiduimagedetail&ipn=d&word=%E9%82%93%E8%B6%85%E5%A4%B4%E5%83%8F&step_word=&ie=utf-8&in=21697&cl=2&lm=-1&st=undefined&cs=1048342095,1797833833&os=895175519,2889344533&pn=39&rn=1&di=175948620320&ln=1000&fr=&fr=ala&fmq=1434280287903_R&ic=undefined&s=undefined&se=1&sme=0&tab=0&width=&height=&face=undefined&is=0,0&istype=0&ist=&jit=&objurl=http%3A%2F%2Fwww.qqtu8.net%2Ff%2F20111218115727_8.gif&bdtype=0';
+
 ==========================
 CREATE TABLE friendlist(uname character(15) references userprofile(login) not null, friends text[] not null);
 ==========================
@@ -59,10 +74,15 @@ INSERT INTO friendlist VALUES ('Sam', ARRAY['nathan']);
 INSERT INTO friendlist VALUES ('nathan', ARRAY['Sam']);
 ==========================
 Add user:
-INSERT INTO userprofile VALUES ('Sam2', 'Jiahao2', true, 30, 170, 65, 6, ARRAY['http://www.selfridges.com/en/givenchy-amerika-cuban-fit-cotton-jersey-t-shirt_242-3000831-15S73176511/?previewAttribute=Black']);
+INSERT INTO userprofile VALUES ('DaWuGui', 'zhang', true, 22, 176, 73, 3, ARRAY['http://www.selfridges.com/en/givenchy-amerika-cuban-fit-cotton-jersey-t-shirt_242-3000831-15S73176511/?previewAttribute=Black']);
+
+INSERT INTO userprofile VALUES ('z', 'zhang', true, 22, 176, 73, 3, ARRAY['http://www.selfridges.com/en/givenchy-amerika-cuban-fit-cotton-jersey-t-shirt_242-3000831-15S73176511/?previewAttribute=Black']);
 ==========================
-Delete friend relationship
-DELETE FROM friendlist WHERE friends = ARRAY['Sam2'];
+Add user of the friend of himself:
+INSERT INTO friendlist VALUES ('DaWuGui',ARRAY['DaWuGui']);
+==========================
+Delete friend relationship:
+UPDATE friendlist SET friends = (SELECT array_agg(x) FROM (SELECT unnest(friends) FROM friendlist WHERE uname = 'nathan' EXCEPT SELECT 'Sam') AS x) WHERE uname = 'nathan';
 ==========================
 Add constaint unique
 ALTER TABLE friendlist ADD CONSTRAINT uniqueuname UNIQUE (uname);
@@ -71,7 +91,7 @@ Add new friend:
 UPDATE friendlist SET friends = array_append(friends, 'Sam2') WHERE uname = 'nathan';
 ==========================
 Find name of friends of 'nathan':
-SELECT name FROM userprofile WHERE login = (SELECT friends FROM friendlist WHERE uname = 'nathan');
+SELECT name FROM userprofile WHERE login = ANY (SELECT unnest(friends) FROM friendlist WHERE uname = 'nathan');
 ==========================
 Create index:
 CREATE INDEX index_name on table_name (column_name);
@@ -84,6 +104,8 @@ ALTER TABLE publishs ADD CONSTRAINT uniqueuname UNIQUE (usrname);
 ==========================
 Find friends of 'nathan':
 SELECT friends FROM friendlist WHERE uname = 'nathan';
+Or:
+SELECT unnest(friends) FROM friendlist WHERE uname = 'nathan';
 ==========================
 ==========================
 Array Aggregte:
@@ -125,3 +147,55 @@ INSERT INTO publishs VALUES ('Sam',ARRAY[ROW('my selfridge', TIMESTAMP '2011-05-
 REAL find publishs
 SELECT usrname,(unnest(shows)).content,(unnest(shows)).publishtime AS ptime FROM publishs WHERE usrname in (SELECT unnest(friends) FROM friendlist WHERE uname = 'nathan') ORDER BY ptime DESC LIMIT 20;
 =================
+
+SELECT EXISTS(SELECT 1 from userprofile WHERE login = 'Sam');
+
+after new user
+INSERT INTO publishs VALUES ('nathan',ARRAY[]::publishitem[]);
+SELECT login,gender,age,height,weight,skincolour FROM userprofile WHERE login = 'Sam';
+
+
+
+       Table "public.userprofile"
+   Column   |     Type      | Modifiers 
+------------+---------------+-----------
+ login      | character(15) | not null
+ name       | text          | not null
+ gender     | boolean       | 
+ age        | integer       | not null
+ height     | integer       | not null
+ weight     | integer       | not null
+ skincolour | integer       | not null
+ wholelook  | text[]        | 
+ tops       | text[]        | 
+ buttoms    | text[]        | 
+ icon       | text          | 
+Indexes:
+=====================================
+   Table "public.friendlist"
+ Column  |     Type      | Modifiers 
+---------+---------------+-----------
+ uname   | character(15) | not null
+ friends | text[]        | not null
+=====================================
+ Table "public.publishs"
+ Column  |     Type      | Modifiers 
+---------+---------------+-----------
+ usrname | character(15) | not null
+ shows   | publishitem[] |
+=====================================
+  Composite type "public.publishitem"
+   Column    |            Type             | Modifiers 
+-------------+-----------------------------+-----------
+ content     | character varying(200)      | 
+ publishtime | timestamp without time zone | 
+ comments    | comment[]                   | 
+ photo       | character varying(300)      |
+=====================================
+  Composite type "public.comment"
+  Column  |            Type             | Modifiers 
+----------+-----------------------------+-----------
+ cusrname | character varying(15)       | 
+ comment  | text                        | 
+ cptime   | timestamp without time zone | 
+=====================================
